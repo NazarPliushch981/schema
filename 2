@@ -1,0 +1,59 @@
+using System;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+
+namespace ClientWin
+{
+    public partial class Form1 : Form
+    {
+        TcpClient client;
+
+        public Form1()
+        {
+            InitializeComponent();
+
+            client = new TcpClient();
+            client.Connect("127.0.0.1", 5000);
+
+            Thread t = new Thread(Read);
+            t.Start();
+        }
+
+        void Read()
+        {
+            while (true)
+            {
+                try
+                {
+                    byte[] data = new byte[1024];
+
+                    int k = client.GetStream().Read(data, 0, data.Length);
+
+                    string msg = Encoding.UTF8.GetString(data, 0, k);
+
+                    Invoke((MethodInvoker)delegate
+                    {
+                        listBox1.Items.Add(msg);
+                    });
+                }
+                catch
+                {
+                    break;
+                }
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string msg = textBox1.Text;
+
+            byte[] data = Encoding.UTF8.GetBytes(msg);
+
+            client.GetStream().Write(data, 0, data.Length);
+
+            textBox1.Clear();
+        }
+    }
+}
