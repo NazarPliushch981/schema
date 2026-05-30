@@ -1,0 +1,52 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+namespace ServerApp
+{
+    class Program
+    {
+        static List<TcpClient> clients = new List<TcpClient>();
+
+        static void Main()
+        {
+            TcpListener server = new TcpListener(IPAddress.Any, 5000);
+            server.Start();
+
+            Console.WriteLine("server started");
+
+            Thread acceptThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    TcpClient c = server.AcceptTcpClient();
+                    clients.Add(c);
+                    Console.WriteLine("client connected");
+                }
+            });
+
+            acceptThread.Start();
+
+            while (true)
+            {
+                string msg = Console.ReadLine();
+
+                byte[] data = Encoding.UTF8.GetBytes("SERVER: " + msg);
+
+                foreach (var c in clients)
+                {
+                    try
+                    {
+                        c.GetStream().Write(data, 0, data.Length);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+    }
+}
