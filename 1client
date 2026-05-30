@@ -1,0 +1,51 @@
+using System;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+namespace ClientApp
+{
+    class Program
+    {
+        static TcpClient client;
+
+        static void Main()
+        {
+            client = new TcpClient();
+            client.Connect("127.0.0.1", 5000);
+
+            Thread t = new Thread(Read);
+            t.Start();
+
+            while (true)
+            {
+                string msg = Console.ReadLine();
+
+                byte[] data = Encoding.UTF8.GetBytes(msg);
+
+                client.GetStream().Write(data, 0, data.Length);
+            }
+        }
+
+        static void Read()
+        {
+            while (true)
+            {
+                try
+                {
+                    byte[] data = new byte[1024];
+
+                    int k = client.GetStream().Read(data, 0, data.Length);
+
+                    string msg = Encoding.UTF8.GetString(data, 0, k);
+
+                    Console.WriteLine(msg);
+                }
+                catch
+                {
+                    break;
+                }
+            }
+        }
+    }
+}
